@@ -1,98 +1,87 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Laboratorio 1: Backend Node + MySQL en Docker Compose
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este laboratorio implementa un stack Node.js + MySQL usando Docker Compose.  
+El objetivo es levantar un backend (NestJS) que expone un CRUD de usuarios con persistencia en MySQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Imagen en GitHub Container Registry
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+La imagen pública está disponible en:
 
-## Project setup
 
-```bash
-$ npm install
-```
+---
 
-## Compile and run the project
+## ariables de entorno requeridas
 
-```bash
-# development
-$ npm run start
+El archivo .env NO debe subirse al repositorio.  
+En su lugar, se provee un .env.example que documenta las variables necesarias:
 
-# watch mode
-$ npm run start:dev
+# Aplicación
+PORT=3000
 
-# production mode
-$ npm run start:prod
-```
+# Base de datos
+DB_HOST=db
+DB_PORT=port
+DB_NAME=dbname
+DB_USER=dboser
+DB_PASSWORD=dbpassword
 
-## Run tests
+# Bootstrap MySQL
+MYSQL_ROOT_PASSWORD=wronpass
+MYSQL_DATABASE=db
+MYSQL_USER=labuser
+MYSQL_PASSWORD=labpass
 
-```bash
-# unit tests
-$ npm run test
+# Levantar los servicios:
+docker compose up -d
 
-# e2e tests
-$ npm run test:e2e
+# Verificar estado:
+docker compose ps
 
-# test coverage
-$ npm run test:cov
-```
+# Inicialización de la base de datos
+# Crear la tabla usuarios si no existe:
 
-## Deployment
+docker compose exec -T db mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" <<'SQL'
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(255) NOT NULL,
+  edad INT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);
+SQL
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+# Pruebas de la API
+# Crear usuario
+curl -i -X POST http://localhost:3000/users \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Carlos Lopez","edad":28}'
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+# Listar usuarios
+curl http://localhost:3000/users
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+# Actualizar usuario
+curl -i -X PATCH http://localhost:3000/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"edad":29}'
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+# Eliminar usuario
+curl -i -X DELETE http://localhost:3000/users/1
 
-## Resources
+# Consideraciones del laboratorio
+- El nombre de la imagen de contenedor referencia al repositorio remoto en GitHub y es público para ser descargado.
+- La imagen lleva el tag lab-1.
+- Todas las instrucciones necesarias están documentadas en este README.md.
+- No se subió ningún archivo .env, solo .env.example y esta documentación.
+- No se modificó el código de la app, solo se agregaron los ficheros de infraestructura (Dockerfile, docker-compose.yml, .env.example).
 
-Check out a few resources that may come in handy when working with NestJS:
+# La revisión se hará ejecutando:
+docker compose up
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Entregables
+- Dockerfile
+- docker-compose.yml
+- .env.example (con estructura de variables)
+- README.md (este archivo, con toda la documentación)
