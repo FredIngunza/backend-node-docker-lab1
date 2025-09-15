@@ -1,5 +1,7 @@
 # Env secreto
 .env
+.env.*
+!*.example
 
 # Node / Logs
 node_modules
@@ -11,3 +13,4 @@ yarn-error.log
 *.swp
 .idea
 .vscode
+.env.example
